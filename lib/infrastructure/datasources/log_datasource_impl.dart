@@ -6,8 +6,10 @@ import '../models/http_request_model.dart';
 import '../models/http_response_model.dart';
 import 'log_datasource.dart';
 
+/// @nodoc
 class LogDatasourceImpl implements LogDatasource {
   final Database database;
+
   LogDatasourceImpl({
     required this.database,
   });
@@ -72,12 +74,13 @@ class LogDatasourceImpl implements LogDatasource {
   Future<List<HttpActivityModel>?> httpActivities({
     int? startDate,
     int? endDate,
+    List<int?>? statusCodes,
     String? url,
   }) async {
-    var filteredByDate = (startDate != null && endDate != null);
-    var hasFilter = filteredByDate && (url != null);
-    var query = '';
-    var queryArgs = [];
+    final filteredByDate = (startDate != null && endDate != null);
+    final hasFilter = filteredByDate && (url != null);
+    String query = '';
+    final queryArgs = [];
     if (filteredByDate) {
       queryArgs.addAll([startDate, endDate]);
       query += "created_at >=  datetime(? / 1000, 'unixepoch')"
@@ -97,35 +100,44 @@ class LogDatasourceImpl implements LogDatasource {
       whereArgs: queryArgs,
       orderBy: 'created_at DESC',
     );
-    var requestModels = List<HttpRequestModel>.from(
+    final requestModels = List<HttpRequestModel>.from(
       requestRows.map(
         (row) => HttpRequestModel.fromJson(row),
       ),
     );
-    var requestIds = requestModels
+    final requestIds = requestModels
         .map((requestModel) => requestModel.requestHashCode)
         .toList();
+
+    String responseQuery = 'request_hash_code in (${requestIds.join(', ')})';
+    if (statusCodes != null && statusCodes.isNotEmpty) {
+      responseQuery = '$responseQuery and '
+          'response_status_code in (${statusCodes.join(', ')})';
+    }
+
     List<Map<String, Object?>> responseRows = await database.query(
       HttpResponseModel.tableName,
-      where: 'request_hash_code in (${requestIds.join(', ')})',
+      where: responseQuery,
     );
-    var responseModels = List<HttpResponseModel>.from(
+    final responseModels = List<HttpResponseModel>.from(
       responseRows.map(
         (row) => HttpResponseModel.fromJson(row),
       ),
     );
 
-    var activities = (responseModels.isNotEmpty)
+    final activities = (responseModels.isNotEmpty)
         ? List<HttpActivityModel>.from(
-            requestModels.map(
-              (requestModel) => HttpActivityModel(
-                request: requestModel,
-                response: responseModels.singleWhereOrNull(
-                  (responseModel) => (responseModel.requestHashCode ==
-                      requestModel.requestHashCode),
-                ),
-              ),
-            ),
+            requestModels
+                .map(
+                  (requestModel) => HttpActivityModel(
+                    request: requestModel,
+                    response: responseModels.singleWhereOrNull(
+                      (responseModel) => (responseModel.requestHashCode ==
+                          requestModel.requestHashCode),
+                    ),
+                  ),
+                )
+                .where((element) => element.response != null),
           ).toList()
         : null;
     return activities;

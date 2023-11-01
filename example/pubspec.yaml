@@ -18,15 +18,15 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.1+2
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   provider: ^6.0.1
-  flutter_local_notifications: ^9.2.0
+  flutter_local_notifications: ^14.1.3+1
   http: ^1.1.0
-  dio: ^5.1.0
+  dio: ^5.2.0
   intl: ^0.18.0
   network_inspector:
     path: ../
@@ -39,7 +39,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.4
+  flutter_lints: ^3.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

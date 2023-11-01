@@ -7,6 +7,7 @@ import '../mappers/http_activity_mapper.dart';
 import '../mappers/http_request_mapper.dart';
 import '../mappers/http_response_mapper.dart';
 
+/// @nodoc
 class LogRepositoryImpl implements LogRepository {
   final LogDatasource logDatasource;
 
@@ -18,11 +19,13 @@ class LogRepositoryImpl implements LogRepository {
   Future<List<HttpActivity>?> httpActivities({
     int? startDate,
     int? endDate,
+    List<int?>? statusCodes,
     String? url,
   }) async {
     var models = await logDatasource.httpActivities(
       url: url,
       startDate: startDate,
+      statusCodes: statusCodes,
       endDate: endDate,
     );
     var entities = (models != null)

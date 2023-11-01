@@ -4,9 +4,11 @@ import '../../common/utils/use_case.dart';
 import '../entities/http_activity.dart';
 import '../repositories/log_repository.dart';
 
+/// @nodoc
 class FetchHttpActivities
     extends UseCase<List<HttpActivity>?, FetchHttpActivitiesParam?> {
   final LogRepository logRepository;
+
   FetchHttpActivities({
     required this.logRepository,
   });
@@ -16,6 +18,7 @@ class FetchHttpActivities
     var result = await logRepository.httpActivities(
       url: param?.url,
       startDate: param?.startDate,
+      statusCodes: param?.statusCodes,
       endDate: param?.endDate,
     );
     return result;
@@ -35,11 +38,13 @@ class FetchHttpActivities
 class FetchHttpActivitiesParam {
   int? startDate;
   int? endDate;
+  List<int?>? statusCodes;
   String? url;
 
   FetchHttpActivitiesParam({
     this.url,
     this.startDate,
+    this.statusCodes,
     this.endDate,
   });
 }
